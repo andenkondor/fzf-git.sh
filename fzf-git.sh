@@ -361,17 +361,12 @@ _fzf_git_worktrees() {
     } else {
       branch = "(detached)"
     }
-    print path "\t" branch
+    printf "%-60s %s\n", path, branch
   }' | _fzf_git_fzf \
     --border-label '🌴 Worktrees ' \
     --header 'CTRL-X (remove worktree)' \
-    --bind 'ctrl-x:reload(git worktree remove {1} > /dev/null; git worktree list)' \
-    --with-nth 1,2 \
-    --preview "
-      git -c color.status=$(__fzf_git_color .) -C {1} status --short --branch
-      echo
-      git -C {1} log --oneline --graph --date=short --color=$(__fzf_git_color .) --pretty='format:%C(auto)%cd %h%d %s' --
-    " "$@" |
+    --bind 'ctrl-x:reload(git worktree remove {1} > /dev/null; git worktree list | awk '\''{ path=$1; if ($3 ~ /^\[/) { gsub(/^\[|\]$/, "", $3); branch=$3 } else { branch="(detached)" } printf "%-60s %s\n", path, branch }'\'')' \
+    "$@" |
   awk '{print $1}'
 }
 
